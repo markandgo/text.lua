@@ -1,5 +1,5 @@
 --[[
-v0.9 text.lua
+v0.91 text.lua
 
 Copyright (c) 2013 Minh Ngo
 
@@ -10,35 +10,37 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 --]]
 
-local path       = (...):match('^.+[%.\\/]') or ''
+local path         = (...):match('^.+[%.\\/]') or ''
 require (path..'utf8')
-local defaultFont= love.graphics.newFont()
-local lg         = love.graphics
-local floor      = math.floor
-local abs        = math.abs
-local concat     = table.concat
-local insert     = table.insert
+local defaultFont  = love.graphics.newFont()
+local lg           = love.graphics
+local floor        = math.floor
+local abs          = math.abs
+local concat       = table.concat
+local insert       = table.insert
+local chunkpatterns= {'(%S+)','(\n)','([^%S\n]+)'}
 
-local function findNextChunk(str,startindex)
-	local i,j,word      = str:find('(%S+)',startindex)
-	local i2,j2,newline = str:find('(\n)',startindex)
-	local i3,j3,space   = str:find('([^%S\n]+)',startindex)
-	if i2 and i2 < (i or math.huge) and i2 < (i3 or math.huge) then
-		return newline,j2+1
-	end
-	if not word and space then 
-		return space,j3+1
-	elseif not space and word then
-		return word,j+1
-	end
-	if space and word then
-		if i < i3 then
-			return word,j+1
-		else
-			return space,j3+1
+local function multigmatch(str,patterns)
+	local startindex = 1
+	return function()
+		local mini,chunk,newstart
+		for a,pattern in ipairs(patterns) do
+			local i,j,capture = str:find(pattern,startindex)
+			if i then 
+				if mini and i < mini then
+					mini        = i
+					chunk       = capture
+					newstart    = j+1
+				elseif not mini then
+					mini         = i
+					chunk        = capture
+					newstart     = j+1
+				end
+			end
 		end
+		startindex = newstart
+		return chunk
 	end
-	return '',startindex
 end
 
 local function createRowStrings(self,str)
@@ -49,13 +51,7 @@ local function createRowStrings(self,str)
 	local rowWidth   = 0
 	local width      = self.width
 	local font       = self.font
-	while true do
-		local chunk,nexti = findNextChunk(str,i)
-		i = nexti
-		if chunk == '' then 
-			rowstrings[currentrow]= concat(chunkCache)
-			break 
-		end
+	for chunk in multigmatch(str,chunkpatterns) do
 		if chunk ~= '\n' then
 			local chunkWidth = font:getWidth(chunk)
 			while chunkWidth > width do
@@ -91,6 +87,7 @@ local function createRowStrings(self,str)
 			chunkCache            = {}
 		end
 	end	
+	rowstrings[currentrow]= concat(chunkCache)
 end
 
 local function cacheLengthsAndWidths(t)
@@ -118,15 +115,17 @@ function text.new(str,width,font)
 	t.rowstrings  = {}
 	t.rowlengths  = {}
 	t.rowWidths   = {}
-	t.viewable    = nil
-	t.align       = nil
+	t.align       = nil	
+	t.subalign    = nil
 	t.heightspace = 0
 	t.__length    = 0
-	t.subalign    = nil
 	t.startbottom = false
 	
 	createRowStrings(t,str)
 	cacheLengthsAndWidths(t)
+	
+	t.viewable    = t.__length
+	
 	return setmetatable(t,text)
 end
 
@@ -144,13 +143,14 @@ function text:iterateRows()
 	return ipairs(self.rowstrings)
 end
 
-function text:setViewable(length,rowstart,startbottom)
+function text:setViewable(length,rowoffset,startbottom)
+	length = length or self.__length
 	if length == 0 then error 'viewable length must be not be zero' end
 	self.startbottom = startbottom
 	local total      = 0
-	if rowstart then
+	if rowoffset then
 		local factor = length < 0 and -1 or 1
-		for i = 1,rowstart-1 do
+		for i = 1,rowoffset-1 do
 			total = total + self.rowlengths[i]*factor
 		end
 	end
@@ -195,8 +195,8 @@ function text:getFont()
 	return self.font
 end
 
-function text:getWidth()
-	return self.width
+function text:getWidth(row)
+	return row and self.rowWidths[row] or self.width
 end
 
 --[[
@@ -209,7 +209,6 @@ function text:draw(x,y,r,sx,sy,ox,oy,kx,ky)
 	local oldfont = lg.getFont() or defaultFont
 	lg.setFont(self.font)
 	
-	x,y             = x or 0,y or 0
 	ox,oy           = ox or 0,oy or 0
 	local h         = self.heightspace + self.font:getHeight()
 	local rs        = self.rowstrings
@@ -219,7 +218,7 @@ function text:draw(x,y,r,sx,sy,ox,oy,kx,ky)
 	local align     = self.align
 	local subalign  = self.subalign
 	local leftscroll= self.viewable < 0
-	local remaining = (self.viewable or self.__length)*(leftscroll and -1 or 1)
+	local remaining = self.viewable*(leftscroll and -1 or 1)
 	local i         = self.startbottom and #rs or 1
 	local oi        = self.startbottom and -1 or 1
 	

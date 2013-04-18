@@ -1,5 +1,5 @@
 function love.load()
-	version = 0.9
+	version = 0.91
 	russian = [[
 а б в г д е ё ж з и й к л м н о
 п р с т у ф х ц ч ш ч ь ы ъ э ю я
@@ -19,6 +19,8 @@ Press up/down to change subalignment.
 Press space to scroll from the bottom/top.
 Press 1 or 2 to reset to a scrolling style.
 ]]
+
+t = 0
 end
 
 function love.keypressed(k,unicode)
@@ -41,10 +43,14 @@ function love.keypressed(k,unicode)
 end
 
 function love.update(dt)
-	if (i or 0) <= test:getLength() then  
-		i = (i or 0)
-		i = i + (i < 0 and -1 or 1)
-		test:setViewable(i,nil,startbottom) 
+	t = t+dt
+	if t > 1/60 then
+		if (i or 0) <= test:getLength() then  
+			i = (i or 0)
+			i = i + (i < 0 and -1 or 1)
+			test:setViewable(i,nil,startbottom) 
+		end
+		t = 0
 	end
 end
 
