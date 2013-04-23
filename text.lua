@@ -11,6 +11,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 --]]
 
 local path         = (...):match('^.+[%.\\/]') or ''
+local grid         = require(path..'grid')
 require (path..'utf8')
 local defaultFont  = love.graphics.newFont()
 local lg           = love.graphics
@@ -18,41 +19,50 @@ local floor        = math.floor
 local abs          = math.abs
 local concat       = table.concat
 local insert       = table.insert
-local chunkpatterns= {'(%S+)','(\n)','([^%S\n]+)'}
+local chunkpatterns= {
+	word    = '(%S+)',
+	newline = '(\n)',
+	space   = '([^%S\n]+)',
+	tagstart= '([.+])',
+	tagend  = '([/])',
+}
 
 local function multigmatch(str,patterns)
 	local startindex = 1
 	return function()
-		local mini,chunk,newstart
-		for a,pattern in ipairs(patterns) do
+		local mini,chunk,newstart,type
+		for t,pattern in pairs(patterns) do
 			local i,j,capture = str:find(pattern,startindex)
 			if i then 
 				if mini and i < mini then
 					mini        = i
 					chunk       = capture
 					newstart    = j+1
+					type        = t
 				elseif not mini then
 					mini         = i
 					chunk        = capture
 					newstart     = j+1
+					type         = t
 				end
 			end
 		end
 		startindex = newstart
-		return chunk
+		return chunk,type
 	end
 end
 
 local function createRowStrings(self,str)
 	local i          = 1
 	local currentrow = 1
-	local rowstrings = self.rowstrings
+	local gridcolumn = 1
+	local gridstrings= self.gridstrings
 	local chunkCache = {}
 	local rowWidth   = 0
 	local width      = self.width
 	local font       = self.font
-	for chunk in multigmatch(str,chunkpatterns) do
-		if chunk ~= '\n' then
+	for chunk,type in multigmatch(str,chunkpatterns) do
+		if type ~= 'newline' then
 			local chunkWidth = font:getWidth(chunk)
 			while chunkWidth > width do
 				local chunklen        = chunk:utf8len()
@@ -63,7 +73,7 @@ local function createRowStrings(self,str)
 					piecechunk = chunk:utf8sub(1,piecelen)
 				end
 				insert(chunkCache,piecechunk)
-				rowstrings[currentrow]= concat(chunkCache)
+				gridstrings[currentrow]= concat(chunkCache)
 				currentrow            = currentrow+1
 				rowWidth              = 0
 				chunkCache            = {}
@@ -71,7 +81,7 @@ local function createRowStrings(self,str)
 				chunkWidth            = font:getWidth(chunk)
 			end
 			if chunkWidth+rowWidth > width then
-				rowstrings[currentrow]= (concat(chunkCache)):match '(.-)%s*$'
+				gridstrings[currentrow]= (concat(chunkCache)):match '(.-)%s*$'
 				currentrow            = currentrow+1
 				local word            = chunk:match('(%S+)')
 				rowWidth              = word and chunkWidth or 0
@@ -81,13 +91,13 @@ local function createRowStrings(self,str)
 				rowWidth = rowWidth+chunkWidth
 			end
 		else
-			rowstrings[currentrow]= concat(chunkCache)
+			gridstrings[currentrow]= concat(chunkCache)
 			currentrow            = currentrow+1
 			rowWidth              = 0
 			chunkCache            = {}
 		end
 	end	
-	rowstrings[currentrow]= concat(chunkCache)
+	gridstrings[currentrow]= concat(chunkCache)
 end
 
 local function cacheLengthsAndWidths(t)
@@ -112,14 +122,16 @@ function text.new(str,width,font)
 	local t       = {}
 	t.width       = width
 	t.font        = font or defaultFont
-	t.rowstrings  = {}
+	-- t.rowstrings  = {}
+	t.gridstrings = grid.new()
 	t.rowlengths  = {}
 	t.rowWidths   = {}
 	t.align       = nil	
 	t.subalign    = nil
 	t.heightspace = 0
-	t.__length    = 0
+	t.viewable    = nil
 	t.startbottom = false
+	t.__length    = 0
 	
 	createRowStrings(t,str)
 	cacheLengthsAndWidths(t)
