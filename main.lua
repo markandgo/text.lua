@@ -10,7 +10,7 @@ function love.load()
 	russian = [[
 <red>а б в г д е ё ж з и й к л м н о<reset>
 п<pic> <green>р с т у ф х ц ч ш ч ь ы ъ э ю я<reset>
-<shake>А Б В Г Д Е Ё Ж З И Й</shake>
+<shake>SHAKING</shake>
 К Л М Н О П Р С Т У Ф
 Х Ц Ч Ш Щ Ь Ы Ъ Э Ю Я
 Ў ў Є є
@@ -66,7 +66,7 @@ end
 
 function love.update(dt)
 	t = t+dt
-	ox = math.sin(t*100)*5
+	ox = math.sin(t*10)*5
 end
 
 function love.draw()
