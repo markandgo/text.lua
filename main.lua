@@ -1,65 +1,64 @@
 function love.load()
-	version = 0.91
+	sprite = love.graphics.newImage('smiley.png')
+	quad = love.graphics.newQuad(2,2,15,15,157,93)
+
+--[[	
+<>   = default delimiters for handlers (default can be changed; see code)
+\\<  = put escape character \ to actually print < and ignore left delimiter
+--]]
+	
 	russian = [[
-а б в г д е ё ж з и й к л м н о
-п р с т у ф х ц ч ш ч ь ы ъ э ю я
-А Б В Г Д Е Ё Ж З И Й
+<red>а б в г д е ё ж з и й к л м н о<reset>
+п<pic> <green>р с т у ф х ц ч ш ч ь ы ъ э ю я<reset>
+<shake>А Б В Г Д Е Ё Ж З И Й</shake>
 К Л М Н О П Р С Т У Ф
 Х Ц Ч Ш Щ Ь Ы Ъ Э Ю Я
 Ў ў Є є
 Ђ Љ Њ Ћ Џ ђ љ њ ћ џ
 1234567890]]
 
-	text = require 'text'
-	test = text.new(russian,800,love.graphics.newFont('font.ttf',24))
+	-- required draw field for drawing obj
+	-- required width field for line wrapping
+	-- bigger width means the obj takes up more space on a line
+	handlers = {
+		red = {
+			draw = function() love.graphics.setColor(255,0,0) end,
+			width = 0,
+			},
+		green = {
+			draw = function() love.graphics.setColor(0,255,0) end,
+			width = 0,
+			},			
+		reset = {
+			draw = function() love.graphics.setColor(255,255,255) end,
+			width = 0,
+		},
+		pic = {
+			draw = function() love.graphics.drawq(sprite,quad,0,0) end,
+			width = 16,
+		},
+		shake = {
+			draw = function() love.graphics.push() love.graphics.translate(ox,0) end,
+			width = 0,
+		},	
+		['/shake']= {
+			draw = function() love.graphics.pop() end,
+			width = 0,
+		},				
+	}
 	
-	instruction = [[
-Press left/right to change alignment.
-Press up/down to change subalignment.
-Press space to scroll from the bottom/top.
-Press 1 or 2 to reset to a scrolling style.
-]]
-
-t = 0
-end
-
-function love.keypressed(k,unicode)
-	if k == 'left' then 
-		mode = mode == 'right' and 'center' or nil
-	elseif k == 'right' then
-		mode = not mode and 'center' or 'right'
-	elseif k == 'up' then 
-		submode = submode == 'right' and 'center' or nil
-	elseif k == 'down' then
-		submode = not submode and 'center' or 'right'
-	elseif k == ' ' then
-		startbottom = not startbottom
-	elseif k == '1' then
-		i = -1
-	elseif k == '2' then
-		i = 1
-	end
-	test:setAlign(mode,submode)
+	text = require 'text'
+	test = text.new(russian,800,love.graphics.newFont('font.ttf',24),handlers)
+	t = 0
 end
 
 function love.update(dt)
 	t = t+dt
-	if t > 1/60 then
-		if (i or 0) <= test:getLength() then  
-			i = (i or 0)
-			i = i + (i < 0 and -1 or 1)
-			test:setViewable(i,nil,startbottom) 
-		end
-		t = 0
-	end
+	ox = math.sin(t*100)*5
 end
 
 function love.draw()
-	test:draw(0,150)
-	love.graphics.print('Align: '..(mode or ''),0,0)
-	love.graphics.print('Sub align: '..(submode or ''),0,12)
-	love.graphics.print(instruction,0,36)
-	love.graphics.print('version: '..version,700,0)
+	test:draw()
 end
 
 function love.quit()
