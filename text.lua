@@ -225,6 +225,17 @@ local function createRowStrings(self,str,taghandlers)
 		elseif chunktype == 'tag' then
 			local chunkObj = taghandlers[chunk]
 			if not chunkObj then error( 'No handler found for tag: '..chunk) end
+			
+			if chunkObj.font then 
+				local oldHeight= font:getHeight()
+				font           = chunkObj.font
+				local olddraw  = chunkObj.draw
+				function chunkObj:draw() 
+					love.graphics.setFont(self.font) 
+					if olddraw then olddraw() end
+				end 
+			end
+			
 			local chunkWidth = chunkObj.width
 			if chunkWidth+rowWidth > maxWidth then
 				insertRow(chunkPieces,grid,rowcount)
@@ -286,7 +297,7 @@ function text:draw(x,y,r,sx,sy,ox,oy,kx,ky)
 	for y,t in ipairs(grid) do
 		love.graphics.push()
 		for x,obj in ipairs(t) do
-			obj:draw()
+			if obj.draw then obj:draw() end
 			love.graphics.translate(obj.width,0)
 		end
 		love.graphics.pop()

@@ -14,8 +14,12 @@ function love.load()
 К Л М Н О П Р С Т У Ф
 Х Ц Ч Ш Щ Ь Ы Ъ Э Ю Я
 Ў ў Є є
+<font>Vera Sans</font>
 Ђ Љ Њ Ћ Џ ђ љ њ ћ џ
 1234567890]]
+	
+	smallFont = love.graphics.newFont(18)
+	russianFont = love.graphics.newFont('font.ttf',24)
 
 	-- required draw field for drawing obj
 	-- required width field for line wrapping
@@ -45,10 +49,18 @@ function love.load()
 			draw = function() love.graphics.pop() end,
 			width = 0,
 		},				
+		font = {
+			font  = smallFont,
+			width = 0,
+		},	
+		['/font']= {
+			font  = russianFont,
+			width = 0,
+		},
 	}
 	
 	text = require 'text'
-	test = text.new(russian,800,love.graphics.newFont('font.ttf',24),handlers)
+	test = text.new(russian,800,russianFont,handlers)
 	t = 0
 end
 
