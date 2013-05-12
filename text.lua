@@ -22,8 +22,8 @@ THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 local path         = (...):match('^.+[%.\\/]') or ''
 local grid         = require(path..'grid')
 require (path..'utf8')
-local defaultFont  = love.graphics.newFont()
 local lg           = love.graphics
+local defaultFont  = lg.newFont()
 local floor        = math.floor
 local chunkpatterns= {
 	word    = '(%S+)',
@@ -55,7 +55,7 @@ function chunkClass.new(str,width,length)
 	return setmetatable(t,chunkClass)
 end
 do
-	local print = love.graphics.print
+	local print = lg.print
 	function chunkClass:draw()
 		print(self.string,0,0)
 	end
@@ -231,7 +231,7 @@ local function createRowStrings(self,str,taghandlers)
 				font           = chunkObj.font
 				local olddraw  = chunkObj.draw
 				function chunkObj:draw() 
-					love.graphics.setFont(self.font) 
+					lg.setFont(self.font) 
 					if olddraw then olddraw() end
 				end 
 			end
@@ -295,13 +295,14 @@ function text:draw(x,y,r,sx,sy,ox,oy,kx,ky)
 	
 	local grid = self.gridStrings
 	for y,t in ipairs(grid) do
-		love.graphics.push()
+		lg.push()
+		-- transformations are reset at start of each row
 		for x,obj in ipairs(t) do
 			if obj.draw then obj:draw() end
-			love.graphics.translate(obj.width,0)
+			lg.translate(obj.width,0)
 		end
-		love.graphics.pop()
-		love.graphics.translate(0,h)
+		lg.pop()
+		lg.translate(0,h)
 	end
 	
 	lg.setFont(oldfont)
