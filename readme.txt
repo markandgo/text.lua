@@ -17,22 +17,22 @@ This is <small>small text<regular>
 
 handlers = {
 	red = {
-		draw = function() love.graphics.setColor(255,0,0) end,
+		draw = function(self) love.graphics.setColor(255,0,0) end,
 	},
 	
 	['/red'] = {
-		draw = function() love.graphics.setColor(255,255,255) end,
+		draw = function(self) love.graphics.setColor(255,255,255) end,
 	},
 	
 	small = {
-		draw = function() 
+		draw = function(self) 
 			oldfont   = love.graphics.newFont(12)
 			smallfont = love.graphics.newFont(8)
 			love.graphics.setFont(smallfont)
 		end,
 	},
 	regular = {
-		draw = function() love.graphics.setFont(oldfont) end,
+		draw = function(self) love.graphics.setFont(oldfont) end,
 	},
 }
 
