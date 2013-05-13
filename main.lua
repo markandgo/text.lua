@@ -26,8 +26,16 @@ This is a picture:<pic>
 This is <shake>SHAKING</shake>
 UTF8 test: а б в г д е ё ж з и й к л м н о
 This is <font>Vera Sans</font>
+Wrap test with Lorem Ipsum:<small>
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris nisi ipsum, aliquet et iaculis in, malesuada nec erat. Integer quis nulla vel risus consequat varius. Aliquam blandit imperdiet lectus non vestibulum. Nam lorem leo, bibendum id luctus vitae, tincidunt vel tellus. Praesent ac sagittis nibh. Nam sapien orci, venenatis quis gravida sed, mattis ut lorem. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Ut lectus orci, adipiscing quis euismod a, consequat eget nulla. Sed lobortis turpis in erat fringilla posuere.
+
+Vivamus commodo ultricies scelerisque. In hac habitasse platea dictumst. Fusce tempor euismod mollis. Ut lobortis commodo nulla, ac adipiscing urna auctor quis. Cras facilisis cursus metus, vel cursus leo posuere non. Aliquam sit amet vulputate orci. Vivamus ut ante ante, non hendrerit quam. Cras ligula libero, elementum id posuere sollicitudin, gravida ut nibh</font>]]
+
+loremipsum = [[
+ 
 ]]
 	
+	smallFont = love.graphics.newFont(12)
 	normalFont = love.graphics.newFont(18)
 	cyrillicFont = love.graphics.newFont('font.ttf',24)
 
@@ -60,6 +68,9 @@ This is <font>Vera Sans</font>
 		['/font']= {
 			font  = cyrillicFont,
 		},
+		small = {
+			font = smallFont,
+		}
 	}
 	
 	lib       = require 'text'

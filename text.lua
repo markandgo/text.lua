@@ -61,6 +61,8 @@ do
 	end
 end
 
+local blankChunk = chunkClass('',0,0)
+
 --[[
 =================================================
 HELPER FUNCTIONS
@@ -135,17 +137,15 @@ local function combineStringChunks(chunkPieces)
 			stringCache.length = stringCache.length + chunk.length
 		else
 			local combined = table.concat(stringCache)
-			if combined ~= '' then
-				local chunkObj = chunkClass(combined,stringCache.width,stringCache.length)
-				table.insert(newChunkPieces,chunkObj)
-			end
+			local chunkObj = chunkClass(combined,stringCache.width,stringCache.length)
+			table.insert(newChunkPieces,chunkObj)
 			stringCache = {width = 0,length = 0}
 			
 			table.insert(newChunkPieces,chunk)
 		end
 	end
-	local combined = table.concat(stringCache)
-	if combined ~= '' then
+	if stringCache[1] then
+		local combined = table.concat(stringCache)
 		local chunkObj = chunkClass(combined,stringCache.width,stringCache.length)
 		table.insert(newChunkPieces,chunkObj)
 	end
@@ -220,7 +220,7 @@ local function createRowStrings(self,str,taghandlers)
 			insertRow(chunkPieces,grid,rowcount)
 			rowcount    = rowcount+1
 			rowWidth    = 0
-			chunkPieces = {}
+			chunkPieces = {blankChunk}
 			
 		elseif chunktype == 'tag' then
 			local chunkObj = taghandlers[chunk]
@@ -232,7 +232,7 @@ local function createRowStrings(self,str,taghandlers)
 				local olddraw  = chunkObj.draw
 				function chunkObj:draw() 
 					lg.setFont(self.font) 
-					if olddraw then olddraw() end
+					if olddraw then olddraw(self) end
 				end 
 			end
 			
