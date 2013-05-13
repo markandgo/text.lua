@@ -1,3 +1,4 @@
+---[=[
 function love.load()
 	sprite = love.graphics.newImage('smiley.png')
 	quad = love.graphics.newQuad(2,2,15,15,157,93)
@@ -59,9 +60,30 @@ function love.load()
 		},
 	}
 	
-	text = require 'text'
-	test = text.new(russian,800,russianFont,handlers)
-	t = 0
+	lib       = require 'text'
+	text      = lib(russian,800,russianFont,handlers)
+	t         = 0
+	text.align= 'center'
+	
+	instruction = [[
+Press left or right to change alignment]]
+end
+
+function love.keypressed(k)
+	if k == 'right' then
+		if text.align == 'left' then
+			text.align = 'center'
+		else
+			text.align = 'right'
+		end
+	end
+	if k == 'left' then
+		if text.align == 'right' then
+			text.align = 'center'
+		else
+			text.align = 'left'
+		end
+	end
 end
 
 function love.update(dt)
@@ -70,9 +92,11 @@ function love.update(dt)
 end
 
 function love.draw()
-	test:draw()
+	text:draw()
+	love.graphics.print(instruction,0,0)
 end
 
 function love.quit()
 
 end
+--]=]

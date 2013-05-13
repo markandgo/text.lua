@@ -251,24 +251,36 @@ local function createRowStrings(self,str,taghandlers)
 	insertRow(chunkPieces,grid,rowcount)	
 end
 
+local function cacheRowWidths(grid)
+	for y,t in ipairs(grid) do
+		local width = 0
+		for x,obj in ipairs(t) do
+			width = obj.width+width
+		end
+		t.width = width
+	end
+end
+
 --[[
 =================================================
 CLASS
 =================================================
 --]]
 
-local text   = {}
+local text   = setmetatable({}, {__call = function(self,...) return self.new(...) end})
 text.__index = text
 
 function text.new(str,width,font,taghandlers)
 	local t       = {}
 	t.width       = width
-	t.font        = font or defaultFont
+	t.font        = font or lg.getFont() or defaultFont
 	t.gridStrings = grid.new()
 	t.heightspace = 0
+	t.align       = 'left'
 	
 	createRowStrings(t,str,taghandlers)
 	t.gridStrings = t.gridStrings.grid
+	cacheRowWidths(t.gridStrings)
 	
 	return setmetatable(t,text)
 end
@@ -278,8 +290,6 @@ end
 SETTER/GETTERS
 -------------------------------------------------
 --]]
-
-
 
 --[[
 -------------------------------------------------
@@ -292,19 +302,23 @@ function text:draw(x,y,r,sx,sy,ox,oy,kx,ky)
 	lg.setFont(self.font)
 	
 	local h    = self.heightspace + self.font:getHeight()
-	
+	local align= self.align
 	local grid = self.gridStrings
 	for y,t in ipairs(grid) do
 		lg.push()
+		lg.translate(0,(y-1)*h)
 		-- transformations are reset at start of each row
+		if align == 'right' then
+			lg.translate(self.width-t.width,0)
+		elseif align == 'center' then
+			lg.translate((self.width-t.width)/2,0)
+		end
 		for x,obj in ipairs(t) do
 			if obj.draw then obj:draw() end
 			lg.translate(obj.width,0)
 		end
 		lg.pop()
-		lg.translate(0,h)
 	end
-	
 	lg.setFont(oldfont)
 end
 
