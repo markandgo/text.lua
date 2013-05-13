@@ -310,7 +310,7 @@ SETTER/GETTERS
 --]]
 
 function text:getTotalHeight()
-	return self.font:getHeight()*(#self.gridStrings)
+	return self.rowheight * #self.gridStrings
 end
 
 function text:getWidth(row)
