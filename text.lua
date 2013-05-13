@@ -245,8 +245,8 @@ local function createRowStrings(self,str,taghandlers)
 				font           = chunkObj.font
 				local olddraw  = chunkObj.draw
 				function chunkObj:draw() 
-					lg.setFont(self.font) 
 					if olddraw then olddraw(self) end
+					lg.setFont(self.font) 
 				end 
 			end
 			
