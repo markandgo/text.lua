@@ -307,12 +307,12 @@ function text:draw(x,y,r,sx,sy,ox,oy,kx,ky)
 	local grid = self.gridStrings
 	for y,t in ipairs(grid) do
 		lg.push()
-		lg.translate(0,(y-1)*h)
+		lg.translate(0,floor((y-1)*h))
 		-- transformations are reset at start of each row
 		if align == 'right' then
-			lg.translate(self.width-t.width,0)
+			lg.translate(floor(self.width-t.width) ,0)
 		elseif align == 'center' then
-			lg.translate((self.width-t.width)/2,0)
+			lg.translate(floor((self.width-t.width)/2),0)
 		end
 		for x,obj in ipairs(t) do
 			if obj.draw then obj:draw() end
