@@ -443,7 +443,7 @@ MAIN
 -------------------------------------------------
 --]]
 
-function text:draw(x,y,r,sx,sy,ox,oy,kx,ky)
+function text:draw()
 	local oldfont = lg.getFont() or defaultFont
 	local r,g,b,a = lg.getColor()
 	lg.setFont(self.font)
