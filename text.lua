@@ -236,6 +236,7 @@ local function createRowStrings(self,str,taghandlers)
 				end 
 			end
 			
+			chunkObj.width   = chunkObj.width or 0
 			local chunkWidth = chunkObj.width
 			if chunkWidth+rowWidth > maxWidth then
 				insertRow(chunkPieces,grid,rowcount)

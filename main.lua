@@ -8,7 +8,7 @@ function love.load()
 \\<  = put escape character \ to actually print < and ignore left delimiter
 --]]
 	
-	russian = [[
+	cyrillic = [[
 <red>а б в г д е ё ж з и й к л м н о<reset>
 п<pic> <green>р с т у ф х ц ч ш ч ь ы ъ э ю я<reset>
 <shake>SHAKING</shake>
@@ -18,9 +18,18 @@ function love.load()
 <font>Vera Sans</font>
 Ђ Љ Њ Ћ Џ ђ љ њ ћ џ
 1234567890]]
+
+message = [[
+<red>This is red<reset>
+This is <green>green<reset>
+This is a picture:<pic>
+This is <shake>SHAKING</shake>
+UTF8 test: а б в г д е ё ж з и й к л м н о
+This is <font>Vera Sans</font>
+]]
 	
-	smallFont = love.graphics.newFont(18)
-	russianFont = love.graphics.newFont('font.ttf',24)
+	normalFont = love.graphics.newFont(18)
+	cyrillicFont = love.graphics.newFont('font.ttf',24)
 
 	-- required draw field for drawing obj
 	-- required width field for line wrapping
@@ -28,15 +37,12 @@ function love.load()
 	handlers = {
 		red = {
 			draw = function() love.graphics.setColor(255,0,0) end,
-			width = 0,
 			},
 		green = {
 			draw = function() love.graphics.setColor(0,255,0) end,
-			width = 0,
 			},			
 		reset = {
 			draw = function() love.graphics.setColor(255,255,255) end,
-			width = 0,
 		},
 		pic = {
 			draw = function() love.graphics.drawq(sprite,quad,0,0) end,
@@ -44,24 +50,20 @@ function love.load()
 		},
 		shake = {
 			draw = function() love.graphics.push() love.graphics.translate(ox,0) end,
-			width = 0,
 		},	
 		['/shake']= {
 			draw = function() love.graphics.pop() end,
-			width = 0,
 		},				
 		font = {
-			font  = smallFont,
-			width = 0,
+			font  = normalFont,
 		},	
 		['/font']= {
-			font  = russianFont,
-			width = 0,
+			font  = cyrillicFont,
 		},
 	}
 	
 	lib       = require 'text'
-	text      = lib(russian,800,russianFont,handlers)
+	text      = lib(message,800,cyrillicFont,handlers)
 	t         = 0
 	text.align= 'center'
 	
@@ -93,7 +95,7 @@ end
 
 function love.draw()
 	text:draw()
-	love.graphics.print(instruction,0,0)
+	love.graphics.print(instruction,0,500)
 end
 
 function love.quit()
