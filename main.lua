@@ -1,6 +1,5 @@
 function love.load()
 	sprite = love.graphics.newImage('smiley.png')
-	quad = love.graphics.newQuad(2,2,15,15,157,93)
 
 --[[	
 <>   = default delimiters for handlers (default can be changed; see code)
@@ -45,8 +44,8 @@ length: (default: 0) "view length" of text object; obj's with bigger lengths
 			draw = function() love.graphics.setColor(255,255,255) end,
 		},
 		pic = {
-			draw = function() love.graphics.drawq(sprite,quad,0,0) end,
-			width = 16,
+			draw = function() love.graphics.draw(sprite,0,0) end,
+			width = 24,
 			-- long length = more time to finish
 			length = 50,
 		},
