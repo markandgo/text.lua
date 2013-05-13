@@ -153,13 +153,21 @@ local function combineStringChunks(chunkPieces)
 end
 
 local function insertRow(chunkPieces,grid,rowcount)
-	chunkPieces = combineStringChunks(chunkPieces)
 	local piececount = #chunkPieces
 	local y = rowcount
 	local i = 0
 	for x = 1,piececount,1 do
 		i = i + 1
 		grid:set(y,x,chunkPieces[i])
+	end
+end
+
+local function stripTrailingSpaces(chunkPieces,font)
+	local lastObj = chunkPieces[#chunkPieces]
+	if getmetatable(lastObj) == chunkClass then
+		lastObj.string = lastObj.string:match('(.-)%s*$')
+		lastObj.length = lastObj.string:utf8len()
+		lastObj.width  = font:getWidth(lastObj.string)
 	end
 end
 
@@ -189,6 +197,7 @@ local function createRowStrings(self,str,taghandlers)
 					local chunkObj = chunkClass(piecechunk, piecewidth, piecelen)
 					insert(chunkPieces,chunkObj)
 					
+					chunkPieces = combineStringChunks(chunkPieces)
 					insertRow(chunkPieces,grid,rowcount)
 					
 					rowcount    = rowcount+1
@@ -202,21 +211,27 @@ local function createRowStrings(self,str,taghandlers)
 				end
 			end
 			
+			local doInsert
 			if chunkWidth+rowWidth > maxWidth then
-				if chunktype == 'word' then
-					insertRow(chunkPieces,grid,rowcount)
-					rowcount    = rowcount+1
-					chunkPieces = {}
-					rowWidth    = chunkWidth
-				end
+				chunkPieces = combineStringChunks(chunkPieces)
+				stripTrailingSpaces(chunkPieces,font)
+				insertRow(chunkPieces,grid,rowcount)
+				
+				rowcount    = rowcount+1
+				chunkPieces = {}
+				rowWidth    = chunkWidth
 			else
-				rowWidth    = rowWidth+chunkWidth
+				rowWidth = rowWidth+chunkWidth
+				doInsert = true
 			end
 			
-			local chunkObj = chunkClass(chunk, chunkWidth, chunklen)
-			table.insert(chunkPieces,chunkObj)
+			if chunktype == 'word' or doInsert then
+				local chunkObj = chunkClass(chunk, chunkWidth, chunklen)
+				table.insert(chunkPieces,chunkObj)
+			end
 			
 		elseif chunktype == 'newline' then
+			chunkPieces = combineStringChunks(chunkPieces)
 			insertRow(chunkPieces,grid,rowcount)
 			rowcount    = rowcount+1
 			rowWidth    = 0
@@ -239,6 +254,7 @@ local function createRowStrings(self,str,taghandlers)
 			chunkObj.width   = chunkObj.width or 0
 			local chunkWidth = chunkObj.width
 			if chunkWidth+rowWidth > maxWidth then
+				chunkPieces = combineStringChunks(chunkPieces)
 				insertRow(chunkPieces,grid,rowcount)
 				rowcount    = rowcount+1
 				rowWidth    = 0
@@ -249,6 +265,7 @@ local function createRowStrings(self,str,taghandlers)
 			rowWidth = rowWidth+chunkWidth	
 		end
 	end
+	chunkPieces = combineStringChunks(chunkPieces)
 	insertRow(chunkPieces,grid,rowcount)	
 end
 
