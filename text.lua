@@ -321,16 +321,16 @@ end
 
 local function setAlignment(self,t,totalwidth,align,subalign)
 	if align == 'right' then
-			lg.translate(self.width-t.width,0)
-		elseif align == 'center' then
-			lg.translate(floor((self.width-t.width)/2),0)
-		end
-		
-		if subalign == 'right' then
-			lg.translate(t.width-totalwidth,0)
-		elseif subalign == 'center' then
-			lg.translate(floor(t.width-totalwidth)/2,0)
-		end
+		lg.translate(self.width-t.width,0)
+	elseif align == 'center' then
+		lg.translate(floor((self.width-t.width)/2),0)
+	end
+	
+	if subalign == 'right' then
+		lg.translate(t.width-totalwidth,0)
+	elseif subalign == 'center' then
+		lg.translate(floor((t.width-totalwidth)/2),0)
+	end
 end
 
 --[[
@@ -429,8 +429,8 @@ function text:setViewLength(viewlength,rowoffset)
 end
 
 function text:setAlign(align,subalign)
-	self.align    = align or 'left'
-	self.subalign = subalign or 'left'
+	self.align    = align or self.align
+	self.subalign = subalign or self.subalign
 end
 
 function text:setRowHeight(height)
@@ -445,6 +445,7 @@ MAIN
 
 function text:draw(x,y,r,sx,sy,ox,oy,kx,ky)
 	local oldfont = lg.getFont() or defaultFont
+	local r,g,b,a = lg.getColor()
 	lg.setFont(self.font)
 	
 	local h           = self.rowheight
@@ -501,6 +502,7 @@ function text:draw(x,y,r,sx,sy,ox,oy,kx,ky)
 		
 	end
 	lg.setFont(oldfont)
+	lg.setColor(r,g,b,a)
 end
 
 return text
