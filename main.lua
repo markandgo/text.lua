@@ -55,6 +55,7 @@ loremipsum = [[
 		pic = {
 			draw = function() love.graphics.drawq(sprite,quad,0,0) end,
 			width = 16,
+			length = 1,
 		},
 		shake = {
 			draw = function() love.graphics.push() love.graphics.translate(ox,0) end,
@@ -73,10 +74,19 @@ loremipsum = [[
 		}
 	}
 	
-	lib       = require 'text'
-	text      = lib(message,800,cyrillicFont,nil,handlers)
-	t         = 0
-	text.align= 'center'
+	lib            = require 'text'
+	text           = lib(message,800,cyrillicFont,nil,handlers)
+	t              = 0
+	text.align     = 'center'
+	text.subalign  = 'right'
+	text.viewlength= 109
+	-- text.viewlength= 10
+	
+	w1 = cyrillicFont:getWidth('This is ')
+	w2 = normalFont:getWidth('V')
+	w3 = cyrillicFont:getWidth('V')
+	-- assert(w1+w2 == 87,w1+w2)
+	-- assert(w2 == 17,w2)
 	
 	instruction = [[
 Press left or right to change alignment]]
@@ -96,6 +106,12 @@ function love.keypressed(k)
 		else
 			text.align = 'left'
 		end
+	end
+	if k == '2' then
+		text.viewlength = text.viewlength+1
+	end
+	if k == '1' then
+		text.viewlength = text.viewlength-1
 	end
 end
 
