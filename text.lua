@@ -282,6 +282,13 @@ local function cacheRowLengthsAndWidths(grid)
 	end
 end
 
+local function cacheMaxLength(grid)
+	local length = 0
+	for y,t in ipairs(grid) do
+		length = length + t.length
+	end
+	return length
+end
 
 local function getSubWidthAndString(row,rowlength)
 	local rowlengthcount = 0
@@ -348,6 +355,7 @@ function text.new(str,width,font,rowheight,taghandlers)
 	createRowStrings(t,str,taghandlers)
 	t.gridStrings = t.gridStrings.grid
 	cacheRowLengthsAndWidths(t.gridStrings)
+	t.maxlength   = cacheMaxLength(t.gridStrings)
 	
 	return setmetatable(t,text)
 end
@@ -364,6 +372,10 @@ end
 
 function text:getWidth(row)
 	return row and self.gridStrings[row].width or self.width
+end
+
+function text:getLength(row)
+	return row and self.gridStrings[row].length or self.maxlength
 end
 
 --[[
