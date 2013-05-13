@@ -269,13 +269,16 @@ local function createRowStrings(self,str,taghandlers)
 	insertRow(chunkPieces,grid,rowcount)	
 end
 
-local function cacheRowWidths(grid)
+local function cacheRowLengthsAndWidths(grid)
 	for y,t in ipairs(grid) do
 		local width = 0
+		local length= 0
 		for x,obj in ipairs(t) do
 			width = obj.width+width
+			length= (obj.length or 0)+length
 		end
 		t.width = width
+		t.length= length
 	end
 end
 
@@ -295,10 +298,17 @@ function text.new(str,width,font,rowheight,taghandlers)
 	t.gridStrings = grid.new()
 	t.rowheight   = rowheight or t.font:getHeight()
 	t.align       = 'left'
+	t.viewlength  = nil
 	
 	createRowStrings(t,str,taghandlers)
 	t.gridStrings = t.gridStrings.grid
-	cacheRowWidths(t.gridStrings)
+	cacheRowLengthsAndWidths(t.gridStrings)
+	
+	local lengthcount = 0
+	for y,t in ipairs(t.gridStrings) do
+		lengthcount = lengthcount+t.length
+	end
+	t.viewlength = lengthcount
 	
 	return setmetatable(t,text)
 end
