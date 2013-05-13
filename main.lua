@@ -74,7 +74,7 @@ loremipsum = [[
 	}
 	
 	lib       = require 'text'
-	text      = lib(message,800,cyrillicFont,handlers)
+	text      = lib(message,800,cyrillicFont,nil,handlers)
 	t         = 0
 	text.align= 'center'
 	
