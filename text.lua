@@ -362,12 +362,23 @@ end
 
 --[[
 -------------------------------------------------
-SETTER/GETTERS
+GETTERS
 -------------------------------------------------
 --]]
 
 function text:getTotalHeight()
 	return self.rowheight * #self.gridStrings
+end
+
+function text:getViewHeight()
+	local count = 0
+	local rows  = 0
+	for y,t in ipairs(self.gridStrings) do
+		count = count+t.length
+		rows  = rows+1
+		if count >= self.viewlength then break end
+	end
+	return rows*self.rowheight
 end
 
 function text:getWidth(row)
@@ -376,6 +387,54 @@ end
 
 function text:getLength(row)
 	return row and self.gridStrings[row].length or self.maxlength
+end
+
+function text:getViewLength()
+	return self.viewlength
+end
+
+function text:getRowCount()
+	return #self.gridStrings
+end
+
+function text:getFont()
+	return self.font
+end
+
+function text:getRowHeight()
+	return self.rowheight
+end
+
+function text:getAlign()
+	return self.align,self.subalign
+end
+
+--[[
+-------------------------------------------------
+SETTERS
+-------------------------------------------------
+--]]
+
+function text:setViewLength(viewlength,rowoffset)
+	local offset = 0
+	if rowoffset then
+		local rowcount = 0
+		for y,t in ipairs(self.gridStrings) do
+			rowcount = rowcount+1
+			offset = offset+t.length
+			if rowcount == rowoffset then break end
+		end
+	end
+	self.viewlength = viewlength+offset
+end
+
+function text:setAlign(align,subalign)
+	self.align    = align or 'left'
+	self.subalign = subalign or 'left'
+end
+
+function text:setRowHeight(height)
+	self.rowheight = height
 end
 
 --[[
