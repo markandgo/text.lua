@@ -288,12 +288,12 @@ CLASS
 local text   = setmetatable({}, {__call = function(self,...) return self.new(...) end})
 text.__index = text
 
-function text.new(str,width,font,taghandlers)
+function text.new(str,width,font,rowheight,taghandlers)
 	local t       = {}
 	t.width       = width
 	t.font        = font or lg.getFont() or defaultFont
 	t.gridStrings = grid.new()
-	t.heightspace = 0
+	t.rowheight   = rowheight or t.font:getHeight()
 	t.align       = 'left'
 	
 	createRowStrings(t,str,taghandlers)
@@ -319,7 +319,7 @@ function text:draw(x,y,r,sx,sy,ox,oy,kx,ky)
 	local oldfont = lg.getFont() or defaultFont
 	lg.setFont(self.font)
 	
-	local h    = self.heightspace + self.font:getHeight()
+	local h    = self.rowheight
 	local align= self.align
 	local grid = self.gridStrings
 	for y,t in ipairs(grid) do
