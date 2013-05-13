@@ -242,7 +242,6 @@ local function createRowStrings(self,str,taghandlers)
 			if not chunkObj then error( 'No handler found for tag: '..chunk) end
 			
 			if chunkObj.font then 
-				local oldHeight= font:getHeight()
 				font           = chunkObj.font
 				local olddraw  = chunkObj.draw
 				function chunkObj:draw() 
@@ -252,6 +251,7 @@ local function createRowStrings(self,str,taghandlers)
 			end
 			
 			chunkObj.width   = chunkObj.width or 0
+			chunkObj.length  = chunkObj.length or 0
 			local chunkWidth = chunkObj.width
 			if chunkWidth+rowWidth > maxWidth then
 				chunkPieces = combineStringChunks(chunkPieces)
@@ -282,6 +282,50 @@ local function cacheRowLengthsAndWidths(grid)
 	end
 end
 
+
+local function getSubWidthAndString(row,rowlength)
+	local rowlengthcount = 0
+	local totalwidth = 0
+	-- store font from previous handler to get correct subwidth
+	local font
+	for x,obj in ipairs(row) do
+		rowlengthcount = rowlengthcount+obj.length
+		if obj.font then font = obj.font end
+		
+		if rowlengthcount <= rowlength then
+			totalwidth = totalwidth+obj.width
+		else
+			local isString = getmetatable(obj) == chunkClass
+			if isString then
+				local sublength= obj.length - (rowlengthcount-rowlength)
+				local substring= obj.string:utf8sub(1,sublength)
+				local subwidth = (font or lg.getFont()) :getWidth(substring)
+				obj.oldstring  = obj.string
+				obj.string     = substring
+				totalwidth     = totalwidth+subwidth
+			else
+				totalwidth     = totalwidth+obj.width
+			end
+			break
+		end
+	end
+	return totalwidth
+end
+
+local function setAlignment(self,t,totalwidth,align,subalign)
+	if align == 'right' then
+			lg.translate(self.width-t.width,0)
+		elseif align == 'center' then
+			lg.translate(floor((self.width-t.width)/2),0)
+		end
+		
+		if subalign == 'right' then
+			lg.translate(t.width-totalwidth,0)
+		elseif subalign == 'center' then
+			lg.translate(floor(t.width-totalwidth)/2,0)
+		end
+end
+
 --[[
 =================================================
 CLASS
@@ -298,6 +342,7 @@ function text.new(str,width,font,rowheight,taghandlers)
 	t.gridStrings = grid.new()
 	t.rowheight   = rowheight or t.font:getHeight()
 	t.align       = 'left'
+	t.subalign    = 'left'
 	t.viewlength  = math.huge
 	
 	createRowStrings(t,str,taghandlers)
@@ -325,6 +370,7 @@ function text:draw(x,y,r,sx,sy,ox,oy,kx,ky)
 	
 	local h           = self.rowheight
 	local align       = self.align
+	local subalign    = self.subalign
 	local grid        = self.gridStrings
 	local rowlengthcount = 0
 	local viewlength  = self.viewlength
@@ -344,33 +390,24 @@ function text:draw(x,y,r,sx,sy,ox,oy,kx,ky)
 			earlyexit = true
 		end
 		
-		-- transformations are reset at start of each row
-		if align == 'right' then
-			lg.translate(self.width-t.width ,0)
-		elseif align == 'center' then
-			lg.translate(floor((self.width-t.width)/2),0)
-		end
+		local totalwidth = t.width
+		if earlyexit then totalwidth = getSubWidthAndString(t,rowlength) end
 		
-		local totalwidth    = 0
+		-- transformations are reset at start of each row
+		setAlignment(self,t,totalwidth,align,subalign)
+		
 		local rowlengthcount= 0
 		for x,obj in ipairs(t) do
-			rowlengthcount = rowlengthcount+(obj.length or 0)
+			rowlengthcount = rowlengthcount+obj.length
 			if rowlengthcount <= rowlength then
 				if obj.draw then obj:draw() end
 				lg.translate(obj.width,0)
-				totalwidth = totalwidth+obj.width
 			else
 				local isString = getmetatable(obj) == chunkClass
 				if isString then
-					local sublength = obj.length - (rowlengthcount-rowlength)
-					local substring = obj.string:utf8sub(1,sublength)
-					local subwidth  = lg.getFont():getWidth(substring)
-					local oldstring = obj.string
-					
-					obj.string = substring
 					obj:draw()
-					obj.string = oldstring
-					
+					obj.string    = obj.oldstring
+					obj.oldstring = nil
 				else
 					if obj.draw then obj:draw() end
 				end
