@@ -1,5 +1,5 @@
 --[[
-v0.98 text.lua
+v1.0 text.lua
 
 Copyright (c) 2013 Minh Ngo
 
@@ -298,17 +298,11 @@ function text.new(str,width,font,rowheight,taghandlers)
 	t.gridStrings = grid.new()
 	t.rowheight   = rowheight or t.font:getHeight()
 	t.align       = 'left'
-	t.viewlength  = nil
+	t.viewlength  = math.huge
 	
 	createRowStrings(t,str,taghandlers)
 	t.gridStrings = t.gridStrings.grid
 	cacheRowLengthsAndWidths(t.gridStrings)
-	
-	local lengthcount = 0
-	for y,t in ipairs(t.gridStrings) do
-		lengthcount = lengthcount+t.length
-	end
-	t.viewlength = lengthcount
 	
 	return setmetatable(t,text)
 end
@@ -329,23 +323,66 @@ function text:draw(x,y,r,sx,sy,ox,oy,kx,ky)
 	local oldfont = lg.getFont() or defaultFont
 	lg.setFont(self.font)
 	
-	local h    = self.rowheight
-	local align= self.align
-	local grid = self.gridStrings
+	local h           = self.rowheight
+	local align       = self.align
+	local grid        = self.gridStrings
+	local rowlengthcount = 0
+	local viewlength  = self.viewlength
+	local width       = self.width
+	local earlyexit
+	
 	for y,t in ipairs(grid) do
+		local rowlength= t.length
+		
 		lg.push()
-		lg.translate(0,floor((y-1)*h))
+		lg.translate(0,(y-1)*h)
+		
+		rowlengthcount = rowlengthcount+t.length
+		
+		if rowlengthcount > viewlength then
+			rowlength = t.length-(rowlengthcount-viewlength)
+			earlyexit = true
+		end
+		
 		-- transformations are reset at start of each row
 		if align == 'right' then
-			lg.translate(floor(self.width-t.width) ,0)
+			lg.translate(self.width-t.width ,0)
 		elseif align == 'center' then
 			lg.translate(floor((self.width-t.width)/2),0)
 		end
+		
+		local totalwidth    = 0
+		local rowlengthcount= 0
 		for x,obj in ipairs(t) do
-			if obj.draw then obj:draw() end
-			lg.translate(obj.width,0)
+			rowlengthcount = rowlengthcount+(obj.length or 0)
+			if rowlengthcount <= rowlength then
+				if obj.draw then obj:draw() end
+				lg.translate(obj.width,0)
+				totalwidth = totalwidth+obj.width
+			else
+				local isString = getmetatable(obj) == chunkClass
+				if isString then
+					local sublength = obj.length - (rowlengthcount-rowlength)
+					local substring = obj.string:utf8sub(1,sublength)
+					local subwidth  = lg.getFont():getWidth(substring)
+					local oldstring = obj.string
+					
+					obj.string = substring
+					obj:draw()
+					obj.string = oldstring
+					
+				else
+					if obj.draw then obj:draw() end
+				end
+				break
+			end
+			
 		end
+		
 		lg.pop()
+		
+		if earlyexit then break end
+		
 	end
 	lg.setFont(oldfont)
 end

@@ -55,6 +55,7 @@ loremipsum = [[
 		pic = {
 			draw = function() love.graphics.drawq(sprite,quad,0,0) end,
 			width = 16,
+			length = 1,
 		},
 		shake = {
 			draw = function() love.graphics.push() love.graphics.translate(ox,0) end,
@@ -73,10 +74,11 @@ loremipsum = [[
 		}
 	}
 	
-	lib       = require 'text'
-	text      = lib(message,800,cyrillicFont,nil,handlers)
-	t         = 0
-	text.align= 'center'
+	lib            = require 'text'
+	text           = lib(message,800,cyrillicFont,nil,handlers)
+	t              = 0
+	text.align     = 'center'
+	text.viewlength= 110
 	
 	instruction = [[
 Press left or right to change alignment]]
