@@ -1,5 +1,5 @@
 --[[
-v1.1 text.lua
+v1.11 text.lua
 
 Copyright (c) 2013 Minh Ngo
 
@@ -86,21 +86,21 @@ local function getFirstWordOrTag(chunk)
 	
 	if not tag then return chunk,offset,'word' end
 	
-	local i2,j2,escapeStart = chunk:sub(i-1,i):find(escapeStart)
-	local i3,j3,escapeEnd   = chunk:sub(j-1,j):find(escapeEnd)
+	local escapeStart = chunk:sub(i-1,i):match(escapeStart)
+	local escapeEnd   = chunk:sub(j-1,j):match(escapeEnd)
 	
 	if not (escapeStart or escapeEnd) then
 		return getTagName(chunk,i,j)
 	end
 	
 	if escapeStart then
-		local prefix = chunk:sub(1,i2-1)
+		local prefix = chunk:sub(1,i-2)
 		if prefix ~= '' then
 			offset = #prefix
 			return prefix,offset,'word'
 		end
-		offset = j2
-		return chunk:sub(2,j2),offset,'word'
+		offset = 2
+		return chunk:sub(2,2),offset,'word'
 	else
 		while true do
 			local _,newj,endtag = chunk:find('('..END..')',j+1)
