@@ -1,5 +1,5 @@
 --[[
-v1.0 text.lua
+v1.1 text.lua
 
 Copyright (c) 2013 Minh Ngo
 
@@ -34,9 +34,10 @@ local chunkpatterns= {
 local START = '<'
 local END   = '>'
 local ESCAPE= '\\'
+local tag   = string.format('(%s.-%s)',START,END)
 
-local tag    = string.format('(%s%s%s)','%b',START,END)
-local escape = string.format('(%s%s)',ESCAPE,START)
+local escapeStart = string.format('(%s%s)',ESCAPE,START)
+local escapeEnd   = string.format('(%s%s)',ESCAPE,END)
 
 --[[
 =================================================
@@ -61,38 +62,62 @@ do
 	end
 end
 
-local blankChunk = chunkClass('',0,0)
+local dummyChunk = {draw = function() end,width = 0,length = 0}
 
 --[[
 =================================================
 HELPER FUNCTIONS
 =================================================
 --]]
+local getTagName = function(chunk,i,j)
+	local prefix = chunk:sub(1,i-1)
+	if prefix ~= '' then
+		offset = #prefix
+		return prefix,offset,'word'
+	end
+	offset     = j
+	local name = chunk:sub(i,j):match(START..'(.*)'..END):gsub(escapeEnd,END)
+	return name,offset,'tag'
+end
+
 local function getFirstWordOrTag(chunk)
 	local offset  = #chunk
 	local i,j,tag = chunk:find(tag)
 	
 	if not tag then return chunk,offset,'word' end
 	
-	local i2,j2,escape = chunk:find(escape)
+	local i2,j2,escapeStart = chunk:sub(i-1,i):find(escapeStart)
+	local i3,j3,escapeEnd   = chunk:sub(j-1,j):find(escapeEnd)
 	
-	if not escape then
-		local prefix = chunk:sub(1,i-1)
+	if not (escapeStart or escapeEnd) then
+		return getTagName(chunk,i,j)
+	end
+	
+	if escapeStart then
+		local prefix = chunk:sub(1,i2-1)
 		if prefix ~= '' then
 			offset = #prefix
 			return prefix,offset,'word'
 		end
-		offset = j
-		return tag:match(START..'(.-)'..END),offset,'tag'
+		offset = j2
+		return chunk:sub(2,j2),offset,'word'
+	else
+		while true do
+			local _,newj,endtag = chunk:find('('..END..')',j+1)
+			local foundEnd
+			if endtag then
+				foundEnd = not chunk:sub(newj-1,newj):match(escapeEnd)
+			else
+				offset = j
+				return chunk:sub(1,j):gsub(escapeEnd,END),offset,'word'
+			end
+			
+			if foundEnd then
+				return getTagName(chunk,i,newj)
+			end
+			j = newj
+		end
 	end
-	
-	local prefix = chunk:sub(1,i2-1)
-	if prefix ~= '' then
-		offset = #prefix
-		return prefix,offset,'word'
-	end
-	offset = j2
-	return chunk:sub(2,j2),offset,'word'
 end
 
 local function multigmatch(str,patterns)
@@ -137,15 +162,16 @@ local function combineStringChunks(chunkPieces)
 			stringCache.length = stringCache.length + chunk.length
 		else
 			local combined = table.concat(stringCache)
-			local chunkObj = chunkClass(combined,stringCache.width,stringCache.length)
-			table.insert(newChunkPieces,chunkObj)
-			stringCache = {width = 0,length = 0}
-			
+			if combined ~= '' then
+				local chunkObj = chunkClass(combined,stringCache.width,stringCache.length)
+				table.insert(newChunkPieces,chunkObj)
+				stringCache = {width = 0,length = 0}
+			end
 			table.insert(newChunkPieces,chunk)
 		end
 	end
-	if stringCache[1] then
-		local combined = table.concat(stringCache)
+	local combined = table.concat(stringCache)
+	if combined ~= '' then
 		local chunkObj = chunkClass(combined,stringCache.width,stringCache.length)
 		table.insert(newChunkPieces,chunkObj)
 	end
@@ -163,11 +189,17 @@ local function insertRow(chunkPieces,grid,rowcount)
 end
 
 local function stripTrailingSpaces(chunkPieces,font)
-	local lastObj = chunkPieces[#chunkPieces]
-	if getmetatable(lastObj) == chunkClass then
-		lastObj.string = lastObj.string:match('(.-)%s*$')
-		lastObj.length = lastObj.string:utf8len()
-		lastObj.width  = font:getWidth(lastObj.string)
+	for i = #chunkPieces,1,-1 do
+		local stringObj = chunkPieces[i]
+		if getmetatable(stringObj) == chunkClass then
+			local hasExtraWidth = chunkPieces[i+1] and chunkPieces[i+1].width ~= 0
+			if hasExtraWidth then return end
+			
+			stringObj.string = stringObj.string:match('(.-)%s*$')
+			stringObj.length = stringObj.string:utf8len()
+			stringObj.width  = font:getWidth(stringObj.string)
+			return
+		end
 	end
 end
 
@@ -235,7 +267,7 @@ local function createRowStrings(self,str,taghandlers)
 			insertRow(chunkPieces,grid,rowcount)
 			rowcount    = rowcount+1
 			rowWidth    = 0
-			chunkPieces = {blankChunk}
+			chunkPieces = {dummyChunk}
 			
 		elseif chunktype == 'tag' then
 			local chunkObj = taghandlers[chunk]
@@ -249,6 +281,7 @@ local function createRowStrings(self,str,taghandlers)
 					lg.setFont(self.font) 
 				end 
 			end
+			assert(type(chunkObj.draw) == 'function','Missing draw functon for handler: '..chunk)
 			
 			chunkObj.width   = chunkObj.width or 0
 			chunkObj.length  = chunkObj.length or 0
@@ -425,7 +458,7 @@ function text:setViewLength(viewlength,rowoffset)
 			if rowcount == rowoffset then break end
 		end
 	end
-	self.viewlength = viewlength+offset
+	self.viewlength = viewlength and viewlength+offset or self.maxlength
 end
 
 function text:setAlign(align,subalign)
@@ -480,7 +513,7 @@ function text:draw()
 		for x,obj in ipairs(t) do
 			rowlengthcount = rowlengthcount+obj.length
 			if rowlengthcount <= rowlength then
-				if obj.draw then obj:draw() end
+				obj:draw()
 				lg.translate(obj.width,0)
 			else
 				local isString = getmetatable(obj) == chunkClass
@@ -489,7 +522,7 @@ function text:draw()
 					obj.string    = obj.oldstring
 					obj.oldstring = nil
 				else
-					if obj.draw then obj:draw() end
+					obj:draw()
 				end
 				break
 			end

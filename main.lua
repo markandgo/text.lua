@@ -2,11 +2,15 @@ function love.load()
 	sprite = love.graphics.newImage('smiley.png')
 
 --[[	
-<>   = default delimiters for handlers (default can be changed; see code)
-\\<  = put escape character \ to actually print < and ignore left delimiter
+<> = default delimiters for handlers (default can be changed; see code)
+\< = put escape character \ to actually print < and ignore left delimiter
+\> = put escape character \ to actually print > and ignore right delimiter
+
+tag names can't have \ at end because \ escapes >
 --]]
 
 message = [[
+Delimiter test: \<><\><<\><\>\><<\>\>
 <red>This is red<reset>
 This is <green>green<reset>
 This is a picture:<pic>
