@@ -71,8 +71,10 @@ length: (default: 0) "view length" of text object; obj's with bigger lengths
 		},
 	}
 	
+	width          = 800
+	height         = 24
 	lib            = require 'text'
-	text           = lib(message,800,cyrillicFont,24,handlers)
+	text           = lib(message,width,cyrillicFont,height,handlers)
 	text.align     = 'left'
 	text.subalign  = 'left'
 	
@@ -87,16 +89,16 @@ Press space to reset scrolling]]
 -- TEST
 -- =======================
 
-assert(text:getTotalHeight() == text:getRowCount()*24)
+assert(text:getTotalHeight() == text:getRowCount()*height)
 assert(text:getViewHeight() == text:getTotalHeight())
-assert(text:getWidth() == 800)
-assert(text:getRowHeight() == 24)
+assert(text:getWidth() == width)
+assert(text:getRowHeight() == height)
 
 text:setAlign('center')
 assert(text:getAlign() == 'center')
 
-text:setRowHeight(24)
-assert(text:getRowHeight() == 24)
+text:setRowHeight(height)
+assert(text:getRowHeight() == height)
 
 text:setViewLength(text:getLength())
 assert(text:getViewLength() == text:getLength())
