@@ -3,14 +3,15 @@ function love.load()
 
 --[[	
 <> = default delimiters for handlers (default can be changed; see code)
-\< = put escape character \ to actually print < and ignore left delimiter
-\> = put escape character \ to actually print > and ignore right delimiter
+\< = put escape character \ to prevent tag parsing and print <
+\> = put escape character \ to include > in tag name or print >
 
 tag names can't have \ at end because \ escapes >
+tag names can't have space characters
 --]]
 
 message = [[
-Delimiter test: \<><\><<\><\>\><<\>\>
+Delimiter test: \<1> <2\> <<3\> <4\>\> <<5\>\>
 <red>This is red<reset>
 This is <green>green<reset>
 This is a picture:<pic>
