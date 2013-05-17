@@ -45,7 +45,7 @@ SET ENVIRONMENT
 --]]
 
 local meta = {__index = function(t,k)
-	local v = _G[k]
+	local v = getfenv(0)[k]
 	rawset(t,k,v)
 	return v
 end}
