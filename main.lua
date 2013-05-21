@@ -75,10 +75,10 @@ length: (default: 0) "view length" of text object; obj's with bigger lengths tak
 			font = smallFont,
 		},
 		shake = {
-			draw = function() ox = math.sin(t*10)*10 love.graphics.translate(ox,0) end,
+			draw = function(self) ox = math.sin(t*10)*10 love.graphics.translate(ox,0) end,
 		},
 		['/shake'] = {
-			draw = function() love.graphics.translate(-ox,0) end,
+			draw = function(self) love.graphics.translate(-ox,0) end,
 		},
 	}
 	
