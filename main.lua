@@ -29,9 +29,10 @@ Vivamus commodo ultricies scelerisque. In hac habitasse platea dictumst. Fusce t
 
 --[[
 Handlers are text objects substituting a tag
+Each handler table can have the following field:
 
 draw  : callback used at tag location
-font  : font to use onward from tag location
+font  : font to use onward from tag location (MUST USE THIS FIELD FOR CUSTOM FONTS TO CORRECTLY WRAP AND ALIGN)
 width : (default: 0) width of text object; used for correct wrapping
 length: (default: 0) "view length" of text object; obj's with bigger lengths 
 			take more time to finish scrolling
@@ -40,16 +41,16 @@ length: (default: 0) "view length" of text object; obj's with bigger lengths
 	
 	handlers = {
 		red = {
-			draw = function() love.graphics.setColor(255,0,0) end,
+			draw = function(self) love.graphics.setColor(255,0,0) end,
 			},
 		green = {
-			draw = function() love.graphics.setColor(0,255,0) end,
+			draw = function(self) love.graphics.setColor(0,255,0) end,
 			},			
 		reset = {
-			draw = function() love.graphics.setColor(255,255,255) end,
+			draw = function(self) love.graphics.setColor(255,255,255) end,
 		},
 		pic = {
-			draw = function() love.graphics.draw(sprite,0,0) end,
+			draw = function(self) love.graphics.draw(sprite,0,0) end,
 			width = 24,
 			-- long length = more time to finish
 			length = 50,
@@ -74,6 +75,12 @@ length: (default: 0) "view length" of text object; obj's with bigger lengths
 	width          = 800
 	height         = 24
 	lib            = require 'text'
+	
+	-- arg 1: string
+	-- arg 2: maximum width before wrapping
+	-- arg 3: default font
+	-- arg 4: row height
+	-- arg 5: table of handler for each tag
 	text           = lib(message,width,cyrillicFont,height,handlers)
 	text.align     = 'left'
 	text.subalign  = 'left'
