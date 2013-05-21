@@ -8,6 +8,17 @@ function love.load()
 
 tag names can't have \ at end because \ escapes >
 tag names can't have space characters
+
+NOTES
+=====
+
+Previous color and font are restored after each text:draw().
+
+Graphical transformations don't affect other rows (scale,rotate,etc).
+
+All text align to the top of each row.
+
+When drawing partial text, a drawn tag with love.graphics.push not paired up with a tag with love.graphics.pop will eventually error.
 --]]
 
 message = [[
@@ -34,8 +45,7 @@ Each handler table can have the following field:
 draw  : callback used at tag location
 font  : font to use onward from tag location (MUST USE THIS FIELD FOR CUSTOM FONTS TO CORRECTLY WRAP AND ALIGN)
 width : (default: 0) width of text object; used for correct wrapping
-length: (default: 0) "view length" of text object; obj's with bigger lengths 
-			take more time to finish scrolling
+length: (default: 0) "view length" of text object; obj's with bigger lengths take more time to finish scrolling
 
 --]]
 	
