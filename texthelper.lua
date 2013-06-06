@@ -1,5 +1,5 @@
 --[[
-v1.2 helper.lua
+v1.2 texthelper.lua
 
 Copyright (c) 2013 Minh Ngo
 
@@ -25,9 +25,9 @@ require (path..'utf8')
 local lg           = love.graphics
 local floor        = math.floor
 local chunkpatterns= {
-	word    = '(%S+)',
-	newline = '(\n)',
-	space   = '([^%S\n]+)',
+	word    = '^(%S+)',
+	newline = '^(\n)',
+	space   = '^([^%S\n]+)',
 }
 
 local START = '<'
