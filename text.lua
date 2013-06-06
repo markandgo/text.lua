@@ -22,7 +22,7 @@ THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 local path       = (...):match('^.+[%.\\/]') or ''
 local lg         = love.graphics
 local defaultFont= lg.newFont()
-local env        = require(path..'helper')
+local env        = require(path..'texthelper')
 setfenv(1,env)
 
 --[[
