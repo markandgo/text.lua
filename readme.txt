@@ -11,8 +11,8 @@ An example:
 lib = require 'text'
 
 string = [[
-<red>This is red</red>
-This is <small>small text<regular>
+This is <red>red</red>
+This is <small>small<regular> text
 ]]
 
 handlers = {
@@ -25,14 +25,10 @@ handlers = {
 	},
 	
 	small = {
-		draw = function(self) 
-			oldfont   = love.graphics.newFont(12)
-			smallfont = love.graphics.newFont(8)
-			love.graphics.setFont(smallfont)
-		end,
+		font = love.graphics.newFont(8)
 	},
 	regular = {
-		draw = function(self) love.graphics.setFont(oldfont) end,
+		font = love.graphics.newFont(12)
 	},
 }
 
