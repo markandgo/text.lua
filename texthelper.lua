@@ -247,7 +247,7 @@ function createRowStrings(self,str,taghandlers)
 						piecewidth = font:getWidth(piecechunk)
 					end
 					local chunkObj = chunkClass(piecechunk, font, piecewidth, piecelen)
-					insert(chunkPieces,chunkObj)
+					table.insert(chunkPieces,chunkObj)
 					
 					insertRow(chunkPieces,grid,rowcount)
 					
