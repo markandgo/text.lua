@@ -5,7 +5,7 @@ This library is for printing pretty texts. The basic premise is to
 use tags in strings to do special effects. Additionally, the library 
 supports proper text wrapping and UTF8 decoding. To use the module, 
 copy the src folder (and rename it if you wish) to where you need it and
-do `require `src.tastytext`.
+do `require "src.tastytext"`.
 
 An example:
 
