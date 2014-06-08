@@ -161,7 +161,7 @@ function TastyText:draw()
 			if chunk.image then
 				love.graphics.draw(chunk.image,x+ox,chunk.y)
 			elseif chunk.draw then
-				chunk.draw(chunk,x+ox,line*self.line_height)
+				chunk.draw(chunk,x+ox,(line-1)*self.line_height)
 			elseif chunk.string then
 			
 				local str,new_width = self:_getSubString(chunk,
