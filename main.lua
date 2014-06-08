@@ -1,174 +1,130 @@
-function love.load()
-	sprite = love.graphics.newImage('smiley.png')
+local text     = require 'src.tastytext'
+local font     = love.graphics.newFont(24)
+local smallfont= love.graphics.newFont(12)
+local cyrillic = love.graphics.newFont('cyrillic.ttf',24)
 
---[[	
-<> = default delimiters for handlers (default can be changed; see code)
-\< = put escape character \ to prevent tag parsing and print <
-\> = put escape character \ to include > in tag name or print >
+local str = 'Welcome to the Tasty Text demo'..
+'\nThis "<red>wo<green>rd<white>" should be half <red>red <white>and '..
+'<green>green<white>. '..
+'\nYou can escape the brackets with "\\": \\\\< or \\\\>'..
+'\n<smallfont>This sentence should have a small font<font>. '.. 
+'Different fonts are aligned to the default font baseline. '..
+'You can also insert images: <smiley> Cool huh? '..
+'\nYou can use custom draw functions: <shake>Here is an example to '..
+'make the text shake.</shake> UTF8 is also supported. Here is a '..
+'Cyrillic test: <cyrillic>В чащах юга жил бы цитрус? '..
+'Да, но фальшивый экземпляр!<font>'
 
-tag names can't have \ at end because \ escapes >
-tag names can't have space characters
+local help = 'Press f1 to toggle help '..
+'\nPress left/down/right to change alignment. '..
+'\nPress a/s/d to change sub-alignment '..
+'\nPress space to scroll the text '..
+'\nPress tab to pause scrolling '..
+'\nPress pgdn and pgup to change limit '
+local show_help = true
 
-NOTES
-=====
-
-Previous color and font are restored after each text:draw().
-
-Graphical transformations don't affect other rows (scale,rotate,etc).
-
-All text align to the top of each row.
-
-When drawing partial text, a drawn tag with love.graphics.push not paired up with a tag with love.graphics.pop will eventually error.
---]]
-
-message = [[
-Delimiter test: \<1> <2\> <<3\> <4\>\> <<5\>\>
-<red>This is red<reset>
-This is <green>green<reset>
-This is a picture:<pic>
-This is <shake>SHAKING</shake>
-UTF8 test: а б в г д е ё ж з и й к л м н о
-This is <font>Vera Sans</font>
-Wrap test with Lorem Ipsum:<small>
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris nisi ipsum, aliquet et iaculis in, malesuada nec erat. Integer quis nulla vel risus consequat varius. Aliquam blandit imperdiet lectus non vestibulum. Nam lorem leo, bibendum id luctus vitae, tincidunt vel tellus. Praesent ac sagittis nibh. Nam sapien orci, venenatis quis gravida sed, mattis ut lorem. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Ut lectus orci, adipiscing quis euismod a, consequat eget nulla. Sed lobortis turpis in erat fringilla posuere.
-
-Vivamus commodo ultricies scelerisque. In hac habitasse platea dictumst. Fusce tempor euismod mollis. Ut lobortis commodo nulla, ac adipiscing urna auctor quis. Cras facilisis cursus metus, vel cursus leo posuere non. Aliquam sit amet vulputate orci. Vivamus ut ante ante, non hendrerit quam. Cras ligula libero, elementum id posuere sollicitudin, gravida ut nibh</font>]]
-	
-	smallFont = love.graphics.newFont(12)
-	normalFont = love.graphics.newFont(18)
-	cyrillicFont = love.graphics.newFont('font.ttf',24)
-
---[[
-Handlers are text objects substituting a tag
-Each handler table can have the following field:
-
-draw  : callback used at tag location
-font  : font to use onward from tag location (MUST USE THIS FIELD FOR CUSTOM FONTS TO CORRECTLY WRAP AND ALIGN)
-width : (default: 0) width of text object; used for correct wrapping
-length: (default: 0) "view length" of text object; obj's with bigger lengths take more time to finish scrolling
-
---]]
-	
-	handlers = {
-		red = {
-			draw = function(self) love.graphics.setColor(255,0,0) end,
-			},
-		green = {
-			draw = function(self) love.graphics.setColor(0,255,0) end,
-			},			
-		reset = {
-			draw = function(self) love.graphics.setColor(255,255,255) end,
+local tags
+tags = {
+	red      = {255,0,0},
+	green    = {0,255,0},
+	white    = {255,255,255},
+	smallfont= smallfont,
+	font     = font,
+	smiley   = love.graphics.newImage 'smiley.png',
+	cyrillic = cyrillic,
+	shake    = {
+		draw = function(chunk,x)
+			local dt = love.timer.getDelta()
+			chunk.properties.t = chunk.properties.t + dt
+			love.graphics.translate(math.sin(chunk.properties.t*50),0)
+		end,
+		properties = {
+			t = 0,
 		},
-		pic = {
-			draw = function(self) love.graphics.draw(sprite,0,0) end,
-			width = 24,
-			-- long length = more time to finish
-			length = 50,
-		},
-		font = {
-			font  = normalFont,
-		},	
-		['/font']= {
-			font  = cyrillicFont,
-		},
-		small = {
-			font = smallFont,
-		},
-		shake = {
-			draw = function(self) ox = math.sin(t*10)*10 love.graphics.translate(ox,0) end,
-		},
-		['/shake'] = {
-			draw = function(self) love.graphics.translate(-ox,0) end,
-		},
-	}
-	
-	width          = 800
-	height         = 24
-	lib            = require 'text'
-	
-	-- arg 1: string
-	-- arg 2: maximum width before wrapping
-	-- arg 3: default font
-	-- arg 4: row height
-	-- arg 5: table of handler for each tag
-	text           = lib(message,width,cyrillicFont,height,handlers)
-	text.align     = 'left'
-	text.subalign  = 'left'
-	
-	t = 0
-	
-instruction = [[
-Press left or right to change alignment
-Press up or down to change subalignment
-Press space to reset scrolling]]
-	
--- =======================
--- TEST
--- =======================
+	},
+	['/shake'] = {
+		draw = function(chunk)
+			love.graphics.translate(-math.sin(tags.shake.properties.t*50),0)
+		end,
+	},
+}
 
-assert(text:getTotalHeight() == text:getRowCount()*height)
-assert(text:getViewHeight() == text:getTotalHeight())
-assert(text:getWidth() == width)
-assert(text:getRowHeight() == height)
-
-text:setAlign('center')
-assert(text:getAlign() == 'center')
-
-text:setRowHeight(height)
-assert(text:getRowHeight() == height)
-
-text:setViewLength(text:getLength())
-assert(text:getViewLength() == text:getLength())
-	
--- =======================
--- /TEST
--- =======================	
-end
+local height   = font:getHeight()
+local limit    = 400
+local test_text= text.new(str,limit,font,tags,height)
+test_text.align= 'center'
+local first    = 0
+local last     = test_text.length
+local fd       = -2
+local ld       = 2
 
 function love.keypressed(k)
-	if k == 'right' then
-		if text.align == 'left' then
-			text.align = 'center'
-		else
-			text.align = 'right'
-		end
-	end
 	if k == 'left' then
-		if text.align == 'right' then
-			text.align = 'center'
-		else
-			text.align = 'left'
-		end
+		test_text.align = 'left'
 	end
-	if k == 'up' then
-		if text.subalign == 'right' then
-			text.subalign = 'center'
-		else
-			text.subalign = 'left'
-		end
+	if k == 'right' then
+		test_text.align = 'right'
 	end
 	if k == 'down' then
-		if text.subalign == 'left' then
-			text.subalign = 'center'
-		else
-			text.subalign = 'right'
-		end
+		test_text.align = 'center'
+	end
+	if k == 'a' then
+		test_text.subalign = 'left'
+	end
+	if k == 'd' then
+		test_text.subalign = 'right'
+	end
+	if k == 's' then
+		test_text.subalign = 'center'
+	end
+	if k == ' ' then
+		first = math.floor(test_text.length/2)
+		last = math.floor(test_text.length/2)
+	end
+	if k == 'escape' then
+		love.event.push 'quit'
+	end
+	if k == 'tab' then
+		pause = not pause
+	end
+	if k == 'pagedown' then
+		limit = limit - 10
+		test_text = text.new(str,limit,font,tags,height)
+	end
+	if k == 'pageup' then
+		limit = limit + 10
+		test_text = text.new(str,limit,font,tags,height)
+	end
+	if k == 'f1' then
+		show_help = not show_help
 	end
 end
 
+local t = 0
 function love.update(dt)
-	if love.keyboard.isDown(' ') then t=0 end
-	t = t+dt
-	text:setViewLength(math.ceil(t*50))
+	t = t + dt
+	if t > 1/30 and not pause then
+		t = 0
+		last  = math.max(last+ld,1)
+		first = math.max(first+fd,1)
+		test_text:setSub(first,last)
+	end
 end
 
 function love.draw()
-	text:draw()
-	love.graphics.print('align: '..text.align,0,550)
-	love.graphics.print('subalign: '..text.subalign,0,572)
-	love.graphics.print(instruction,0,500)
-end
-
-function love.quit()
-
+	love.graphics.setColor(255,0,0)
+	love.graphics.push()
+	love.graphics.translate((love.graphics.getWidth()-limit)/2,0)
+	love.graphics.line(0,0,0,600)
+	love.graphics.line(limit,0,limit,600)
+	love.graphics.setColor(255,255,255)
+	test_text:draw()
+	love.graphics.pop()
+	
+	if show_help then
+		love.graphics.setColor(64,64,64)
+		love.graphics.rectangle('fill',0,0,300,100)
+		love.graphics.setColor(255,255,255)
+		love.graphics.print(help)
+	end
 end
