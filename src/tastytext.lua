@@ -557,17 +557,18 @@ function TastyText:_split(str,delimiter_pattern)
 end
 
 function TastyText:_getSubString(chunk,i,j,font)
-	local width = chunk.width
 	local str   = chunk.string
+	local width = chunk.width
+	local start,last
 	if self.first > 1 then
-		local start= math.max(1,self.first-i)
-		str        = chunk.string:utf8sub(start)
-		width      = font:getWidth(str)
+		start= math.max(1,self.first-i)
 	end
 	if self.last < self.length then
-		local last = math.min(self.last-j-1,-1)
-		str        = str:utf8sub(1,last)
-		width      = font:getWidth(str)
+		last = math.min(self.last-j-1,-1)
+	end
+	if start or last then
+		str  = chunk.string:utf8sub(start or 1,last or -1)
+		width= font:getWidth(str)
 	end
 	return str,width
 end
