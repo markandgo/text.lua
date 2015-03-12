@@ -1,5 +1,5 @@
 --[[
-TastyText 2.0 
+TastyText 2.1 
 Copyright (c) 2014 Minh Ngo
 
 This software is provided 'as-is', without any express or implied 
@@ -112,7 +112,7 @@ local escape_tag = string.format('%s([%s%s])',ESCAPE,START,END)
 --TEXT CLASS
 ------------------------------------------------------------------------
 
-local TastyText  = {}
+local TastyText  = {_VERSION = '2.1'}
 TastyText.__index= TastyText
 
 function TastyText.new(str,limit,default_font,tags,line_height)
