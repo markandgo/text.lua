@@ -58,8 +58,46 @@ chunk = {
 }
 ]]
 
-local path = (...):match('.+%.')
-require (path..'utf8')
+local major,minor,revision = love.getVersion()
+local composite_number = major*10^6 + minor*10^3 + revision
+
+local utf8len,utf8sub
+
+if composite_number >= 009002 then
+	local utf8 = require('utf8')
+	
+	utf8len = function(str)
+		return utf8.len(str)
+	end
+	
+	utf8sub = function(str,i,j)
+		j = j or -1
+		
+		-- only set l if i or j is negative
+		local l = (i >= 0 and j >= 0) or utf8.len(str)
+		i = (i >= 0) and i or l + i + 1
+		j = (j >= 0) and j or l + j + 1
+		
+		if i < 0 then i = 1 elseif i > l then i = l end
+		if j < 0 then j = 1 elseif j > l then j = l end
+
+		
+		local byte_a = utf8.offset(str,i)
+		local byte_b = utf8.offset(str,j+1)-1
+		return str:sub(byte_a,byte_b)
+	end
+else
+	local path = (...):match('.+%.')
+	require(path..'utf8')
+	
+	utf8len = function(str)
+		return str:utf8len()
+	end
+	
+	utf8sub = function(str,i,j)
+		return str:utf8sub(i,j)
+	end
+end
 
 -------------------
 -- GLOBALS
@@ -367,7 +405,7 @@ function TastyText:_newTextChunk(str,x,y,width,line_index)
 		line  = line_index,
 		string=str,
 		width = width,
-		length= str:utf8len(),
+		length= utf8len(str),
 	}	
 end
 
@@ -492,18 +530,18 @@ function TastyText:_splitLongWord(str,width,x,font)
 	
 	while width > self.limit do
 		local dw       = self.limit - x
-		local sub_len  = math.ceil( (dw/width * str:utf8len()) )
-		local sub_str  = str:utf8sub(1,sub_len)
+		local sub_len  = math.ceil( (dw/width * utf8len(str)) )
+		local sub_str  = utf8sub(str,1,sub_len)
 		local sub_width= font:getWidth(sub_str)
 		
 		while x + sub_width > self.limit do
-			sub_str   = sub_str:utf8sub(1,-2)
+			sub_str   = utf8sub(sub_str,1,-2)
 			sub_width = font:getWidth(sub_str)
 			sub_len   = sub_len - 1
 		end
 		
 		array[i]= sub_str
-		str     = str:utf8sub(sub_len+1)
+		str     = utf8sub(str,sub_len+1)
 		width   = width-sub_width
 		x       = 0
 		i       = i + 1
@@ -567,7 +605,7 @@ function TastyText:_getSubString(chunk,i,j,font)
 		last = math.min(self.last-j-1,-1)
 	end
 	if start or last then
-		str  = chunk.string:utf8sub(start or 1,last or -1)
+		str  = utf8sub(chunk.string,start or 1,last or -1)
 		width= font:getWidth(str)
 	end
 	return str,width
