@@ -22,8 +22,8 @@ This is a <small>small<regular> text
 ]]
 
 tags = {
-	red     = {255,0,0},
-	['/red']= {255,255,255},
+	red     = {255,0,0,255}, -- r,g,b,a
+	['/red']= {255,255,255}, -- alpha defaults to 255
 	small   = love.graphics.newFont(12),
 	regular = love.graphics.newFont(24),
 }
