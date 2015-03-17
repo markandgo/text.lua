@@ -3,7 +3,7 @@ Tasty Text
 
 Requires Love **0.9.1+**
 
-Version: **2.1**
+Version: **2.2**
 
 This library is for printing pretty texts. The basic premise is to 
 use tags in strings to do special effects. Additionally, the library 

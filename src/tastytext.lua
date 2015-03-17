@@ -1,5 +1,5 @@
 --[[
-TastyText 2.1 
+TastyText 2.2 
 Copyright (c) 2014 Minh Ngo
 
 This software is provided 'as-is', without any express or implied 
@@ -73,14 +73,14 @@ if composite_number >= 009002 then
 	utf8sub = function(str,i,j)
 		j = j or -1
 		
-		-- only set l if i or j is negative
-		local l = (i >= 0 and j >= 0) or utf8.len(str)
-		i = (i >= 0) and i or l + i + 1
-		j = (j >= 0) and j or l + j + 1
-		
-		if i < 0 then i = 1 elseif i > l then i = l end
-		if j < 0 then j = 1 elseif j > l then j = l end
-
+		if i < 1 or j < 1 then
+			local l = utf8.len(str)
+			i = (i >= 0) and i or l + i + 1
+			j = (j >= 0) and j or l + j + 1
+			
+			if i < 0 then i = 1 elseif i > l then i = l end
+			if j < 0 then j = 1 elseif j > l then j = l end
+		end
 		
 		local byte_a = utf8.offset(str,i)
 		local byte_b = utf8.offset(str,j+1)-1
@@ -112,7 +112,7 @@ local escape_tag = string.format('%s([%s%s])',ESCAPE,START,END)
 --TEXT CLASS
 ------------------------------------------------------------------------
 
-local TastyText  = {_VERSION = '2.1'}
+local TastyText  = {_VERSION = '2.2'}
 TastyText.__index= TastyText
 
 function TastyText.new(str,limit,default_font,tags,line_height)
