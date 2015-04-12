@@ -133,7 +133,7 @@ the text. The following are the fields of `t`.
 The callback.
 
 #### .length
-The length of the tag. It must be 1 or greater if the tag occupies pixel space.
+The length of the tag. It must be 1 or greater if the tag has a non-zero width.
 
 #### .width
 The width of the tag.
