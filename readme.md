@@ -53,8 +53,9 @@ The `default_font` parameter accepts a default `Font` for the text. If
 one is not specified, the current font is used. The default font is 
 also used for aligning the baselines of other fonts with the default one.
 
-The `line_height` parameter accepts a number, which affects 
-the height of each line.
+The `line_height` parameter accepts an optional number, which affects
+the height and spacing of each line. By default, the `line_height` is equal to 
+`default_font:getHeight()`, which is a line spacing of `0`.
 
 #### :setSub(i,j)
 Set the "sub" text to draw from `i` to `j`. The default is to draw from 
@@ -119,8 +120,8 @@ Tags
 ====
 
 To use tags in strings, their names must be associated with an object 
-in the `tags` table. With the tag `name` as keys, allowable paired values 
-are `Font`, `Image`, color table, or custom draw table.
+in the `tags` table. A tag object can be a `Font`, `Image`, color table, or 
+custom draw table.
 
 The custom draw table must contain a `draw` callback, optional `length` 
 (`0` default), optional `width` (`0` default), or optional `properties` 
